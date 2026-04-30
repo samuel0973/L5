@@ -45,13 +45,14 @@ show_centrifugat() {
 
 void main(void)
 {
-   // Configuració de pins 
+   // Configuració de pins (all digital)
    ANSELA=0x00; 
    ANSELB=0x00;                  
    ANSELC=0x00;                  
    ANSELD=0x00;                  
    
-   TRISA=0x00;  
+   //enable buttons
+   TRISA=0x0F;  
    TRISD=0x00;    
    TRISB=0x00;
 
@@ -68,9 +69,9 @@ void main(void)
    __delay_ms(1000);       // Esperem 1 segon
    clearGLCD(0,7,0,127);   // Tornem a esborrar per al bucle principal
    
-
    while (1)
    {  
+      show_rentat();
       __delay_ms(10); // Pausa per evitar pampallugues excessives
    }
 }
