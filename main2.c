@@ -30,21 +30,18 @@ void writeTxt(byte page, byte y, char *s) {
 
 // ================= BUTTONS =================
 
-#define BTN_UP      0x01   // RB0
-#define BTN_DOWN    0x02   // RB1
-#define BTN_LEFT    0x04   // RB2
-#define BTN_RIGHT   0x08   // RB3
-#define BTN_OK      0x10   // RB4
+#define BTN_UP      0x02   // RA0
+#define BTN_DOWN    0x08   // RA1
+#define BTN_LEFT    0x10   // RA2
+#define BTN_RIGHT   0x01   // RA3
+#define BTN_OK      0x04   // RA4
 #define BTN_MASK    0x1F
 
 byte prev_buttons = 0;
 
 byte read_buttons(void) {
     // Pull-down: not pressed = 0, pressed = 1
-    return PORTB & BTN_MASK;
-
-    // If using pull-up buttons:
-    // return (~PORTB) & BTN_MASK;
+    return PORTA & BTN_MASK;
 }
 
 byte get_new_presses(void) {
@@ -183,8 +180,7 @@ char *param_unit(Screen s, Param p) {
 void draw_start_screen(void) {
     clearGLCD(0, 7, 0, 127);
 
-    writeTxt(2, 6, "L5 Individual");
-    writeTxt(4, 8, "Your Name");
+    writeTxt(2, 6, "Samuel Mezquita");
 
     __delay_ms(1000);
 }
@@ -259,7 +255,13 @@ void handle_buttons(byte btn) {
 
 void init_pic(void) {
     ANSELB = 0x00;
-    TRISB |= BTN_MASK;
+    ANSELA = 0x00;
+    ANSELD = 0x00;
+    
+    TRISA = 0x1F;
+    
+    PORTB = 0x00;
+    PORTD = 0x00;
 }
 
 void main(void) {
