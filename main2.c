@@ -157,7 +157,7 @@ char *param_unit(Screen s, Param p) {
 }
 
 
-void draw_start_screen(void) {
+void draw_start_screen() {
     clearGLCD(0, 7, 0, 127);
 
     writeTxt(4, 6, "Samuel Mezquita");
@@ -185,7 +185,7 @@ void draw_param_line(unsigned char page, Param p) {
     writeTxt(page, 18, param_unit(selected_screen, p));
 }
 
-void draw_menu(void) {
+void draw_screen() {
     clearGLCD(0, 7, 0, 127);
 
     draw_header();
@@ -195,6 +195,10 @@ void draw_menu(void) {
     draw_param_line(4, PARAM_SPEED);
 
     writeTxt(6, 0, "OK: canvia param");
+}
+
+void draw_edit(unsigned char page, unsigned char col) {
+
 }
 
 
@@ -256,7 +260,7 @@ void main(void) {
     GLCDinit();
 
     draw_start_screen();
-    draw_menu();
+    draw_screen();
 
     while (1) {
         btn = get_new_presses();
