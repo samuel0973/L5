@@ -129,19 +129,19 @@ char *param_name(Screen s, Param p) {
     if (s == RENTAT) {
         if (p == PARAM_0) return "Sabo";
         if (p == PARAM_TIME) return "Temps";
-        if (p == PARAM_SPEED) return "Vel";
+        if (p == PARAM_SPEED) return "Velocitat";
     }
 
     if (s == ESBANDIT) {
         if (p == PARAM_0) return "Vegades";
         if (p == PARAM_TIME) return "Temps";
-        if (p == PARAM_SPEED) return "Vel";
+        if (p == PARAM_SPEED) return "Velocitat";
     }
 
     if (s == CENTRIFUGAT) {
-        if (p == PARAM_0) return "Suav.";
+        if (p == PARAM_0) return "Suavitzant.";
         if (p == PARAM_TIME) return "Temps";
-        if (p == PARAM_SPEED) return "Vel";
+        if (p == PARAM_SPEED) return "Velocitat";
     }
 
     return "";
@@ -151,7 +151,7 @@ char *param_unit(Screen s, Param p) {
     if (p == PARAM_TIME) return "s";
     if (p == PARAM_SPEED) return "rpm";
 
-    if (s == ESBANDIT && p == PARAM_0) return "veg";
+    if (s == ESBANDIT && p == PARAM_0) return "vegades";
 
     return "ml";
 }
@@ -169,13 +169,18 @@ void draw_header(void) {
     writeTxt(0, 2, screen_name(selected_screen));
 }
 
+unsigned char get_page(Param p) {
+   if (p == PARAM_0) return 2;
+   if (p == PARAM_TIME) return 4;
+   return 6;
+}
+
 void draw_param_line(unsigned char page, Param p) {
-    unsigned char col = 0;
 
     if (p == selected_param)
-        writeTxt(page, col, ">");
+         writeTxt(page, 0, ">");
     else
-        writeTxt(page, col, " ");
+        writeTxt(page, 0, " ");
 
     writeTxt(page, 2, param_name(selected_screen, p));
     writeTxt(page, 11, ":");
@@ -191,18 +196,29 @@ void draw_screen() {
     draw_header();
 
     draw_param_line(2, PARAM_0);
-    draw_param_line(3, PARAM_TIME);
-    draw_param_line(4, PARAM_SPEED);
-
-    writeTxt(6, 0, "OK: canvia param");
+    draw_param_line(4, PARAM_TIME);
+    draw_param_line(6, PARAM_SPEED);
 }
 
-void draw_edit(unsigned char page, unsigned char col) {
+void draw_edit(Param p) {
+   byte page = get_page(p);
+   clearGLCD(page, page, 128, 152);
+   writeNum(page, 13, settings[selected_screen].value[p]);
+}
 
+void draw_arrow(Param p, byte old_page) {
+   byte page = get_page(p);
+   clearGLCD(old_page, old_page, 0, 9);
+   clearGLCD(page, page, 0, 9);
+   
+   if (edit_mode) writeTxt(page, 0, ">>");
+   else writeTxt(page, 0, ">");
 }
 
 
 void handle_buttons(unsigned char btn) {
+    byte old_arrow_page = get_page(selected_param);
+    
     if (btn & BTN_RIGHT) {
         selected_screen = (selected_screen + 1) % NUM_SCREENS;
         selected_param = PARAM_0;
@@ -218,27 +234,29 @@ void handle_buttons(unsigned char btn) {
     if (btn & BTN_OK) {
         if (edit_mode == 0) edit_mode = 1;
         else edit_mode = 0;
-        redraw_needed = 1;
+	draw_arrow(selected_param, old_arrow_page);
     }
 
     if (btn & BTN_UP) {
         if (edit_mode) {
          increase_value(selected_screen, selected_param);
+	 draw_edit(selected_param);
         }
         else {
             selected_param = (selected_param - 1 + NUM_PARAMS) % NUM_PARAMS;
+	    draw_arrow(selected_param, old_arrow_page);
         }
-        redraw_needed = 1;
     }
 
     if (btn & BTN_DOWN) {
         if (edit_mode) {
          decrease_value(selected_screen, selected_param);
+	 draw_edit(selected_param);
         }
         else {
             selected_param = (selected_param + 1) % NUM_PARAMS;
+	    draw_arrow(selected_param, old_arrow_page);
         }
-        redraw_needed = 1;
     }
 }
 
@@ -270,7 +288,7 @@ void main(void) {
         }
 
         if (redraw_needed) {
-            draw_menu();
+            draw_screen();
             redraw_needed = 0;
         }
     }
