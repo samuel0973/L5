@@ -1,5 +1,6 @@
 #include <xc.h>
-#include <stdio.h>
+#include "config.h"
+#include "GLCD.h"
 
 #define _XTAL_FREQ 8000000
 
