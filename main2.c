@@ -38,7 +38,6 @@ ScreenSettings settings[NUM_SCREENS] = {
     {{0, 0, 100}}    // CENTRIFUGAT: suavitzant, temps, velocitat
 };
 
-unsigned char redraw_needed = 0;
 unsigned char prev_buttons = 0;
 unsigned char edit_mode = 0;
 
@@ -165,10 +164,6 @@ void draw_start_screen() {
     __delay_ms(1000);
 }
 
-void draw_header(void) {
-    writeTxt(0, 2, screen_name(selected_screen));
-}
-
 unsigned char get_page(Param p) {
    if (p == PARAM_0) return 2;
    if (p == PARAM_TIME) return 4;
@@ -177,11 +172,8 @@ unsigned char get_page(Param p) {
 
 void draw_param_line(unsigned char page, Param p) {
 
-    if (p == selected_param)
-         writeTxt(page, 0, ">");
-    else
-        writeTxt(page, 0, " ");
-
+    if (p == selected_param) writeTxt(page, 0, ">");
+    
     writeTxt(page, 2, param_name(selected_screen, p));
     writeTxt(page, 11, ":");
 
@@ -190,14 +182,69 @@ void draw_param_line(unsigned char page, Param p) {
     writeTxt(page, 18, param_unit(selected_screen, p));
 }
 
-void draw_screen() {
-    clearGLCD(0, 7, 0, 127);
+void draw_screen(Screen s) {
 
-    draw_header();
+    writeTxt(0, 2, screen_name(selected_screen));
 
     draw_param_line(2, PARAM_0);
     draw_param_line(4, PARAM_TIME);
     draw_param_line(6, PARAM_SPEED);
+}
+
+void my_clear(Screen s) {
+     if (selected_screen == RENTAT) {
+	 //clear header
+	 clearGLCD(0, 0, 12, 48);
+	 
+	 //clear params
+	 clearGLCD(2, 2, 12, 36);
+	 clearGLCD(4, 4, 12, 42);
+	 clearGLCD(6, 6, 12, 66);
+	 
+	 //clear :
+	 clearGLCD(2, 2, 66, 72);
+	 clearGLCD(4, 4, 66, 72);
+	 clearGLCD(6, 6, 66, 72);
+	 
+	 //clear units
+	 clearGLCD(2, 2, 216, 228);
+	 clearGLCD(4, 4, 216, 222);
+	 clearGLCD(6, 6, 216, 234);
+     }
+     if (selected_screen == ESBANDIT) {
+	 clearGLCD(0, 0, 12, 60);
+	 
+	 clearGLCD(2, 2, 12, 54);
+	 clearGLCD(4, 4, 12, 42);
+	 clearGLCD(6, 6, 12, 66);
+	 
+	  //clear :
+	 clearGLCD(2, 2, 66, 72);
+	 clearGLCD(4, 4, 66, 72);
+	 clearGLCD(6, 6, 66, 72);
+	 
+	 //clear units
+	 clearGLCD(2, 2, 216, 228);
+	 clearGLCD(4, 4, 216, 222);
+	 clearGLCD(6, 6, 216, 234);
+     }
+     if (selected_screen == CENTRIFUGAT) {
+	 clearGLCD(0, 0, 12, 78);
+	 
+	 clearGLCD(2, 2, 12, 72);
+	 clearGLCD(4, 4, 12, 42);
+	 clearGLCD(6, 6, 12, 66);
+	 
+	  //clear :
+	 clearGLCD(2, 2, 66, 72);
+	 clearGLCD(4, 4, 66, 72);
+	 clearGLCD(6, 6, 66, 72);
+	 
+	 //clear units
+	 clearGLCD(2, 2, 216, 228);
+	 clearGLCD(4, 4, 216, 222);
+	 clearGLCD(6, 6, 216, 234);
+     }
 }
 
 void draw_edit(Param p) {
@@ -220,15 +267,17 @@ void handle_buttons(unsigned char btn) {
     byte old_arrow_page = get_page(selected_param);
     
     if (btn & BTN_RIGHT) {
+	my_clear(selected_screen);
         selected_screen = (selected_screen + 1) % NUM_SCREENS;
         selected_param = PARAM_0;
-        redraw_needed = 1;
+	draw_screen(selected_screen);
     }
 
     if (btn & BTN_LEFT) {
+	my_clear(selected_screen);
         selected_screen = (selected_screen - 1 + NUM_SCREENS) % NUM_SCREENS;
         selected_param = PARAM_0;
-        redraw_needed = 1;
+	draw_screen(selected_screen);
     }
 
     if (btn & BTN_OK) {
@@ -278,18 +327,13 @@ void main(void) {
     GLCDinit();
 
     draw_start_screen();
-    draw_screen();
+    draw_screen(selected_screen);
 
     while (1) {
         btn = get_new_presses();
 
         if (btn) {
             handle_buttons(btn);
-        }
-
-        if (redraw_needed) {
-            draw_screen();
-            redraw_needed = 0;
         }
     }
 }
