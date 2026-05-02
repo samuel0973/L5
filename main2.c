@@ -39,6 +39,7 @@ ScreenSettings settings[NUM_SCREENS] = {
 
 unsigned char redraw_needed = 0;
 unsigned char prev_buttons = 0;
+unsigned char edit_mode = 0;
 
 
 void writeTxt(unsigned char page, unsigned char y, char *s) {
@@ -210,17 +211,28 @@ void handle_buttons(unsigned char btn) {
     }
 
     if (btn & BTN_OK) {
-        selected_param = (selected_param + 1) % NUM_PARAMS;
+        if (edit_mode == 0) edit_mode = 1;
+        else edit_mode = 0;
         redraw_needed = 1;
     }
 
     if (btn & BTN_UP) {
-        increase_value(selected_screen, selected_param);
+        if (edit_mode) {
+         increase_value(selected_screen, selected_param);
+        }
+        else {
+            selected_param = (selected_param - 1 + NUM_PARAMS) % NUM_PARAMS;
+        }
         redraw_needed = 1;
     }
 
     if (btn & BTN_DOWN) {
-        decrease_value(selected_screen, selected_param);
+        if (edit_mode) {
+         decrease_value(selected_screen, selected_param);
+        }
+        else {
+            selected_param = (selected_param + 1) % NUM_PARAMS;
+        }
         redraw_needed = 1;
     }
 }
