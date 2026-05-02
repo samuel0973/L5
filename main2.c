@@ -37,7 +37,8 @@ ScreenSettings settings[NUM_SCREENS] = {
     {{0, 0, 100}}    // CENTRIFUGAT: suavitzant, temps, velocitat
 };
 
-unsigned char redraw_needed = 1;
+unsigned char redraw_needed = 0;
+unsigned char prev_buttons = 0;
 
 
 void writeTxt(unsigned char page, unsigned char y, char *s) {
@@ -48,8 +49,6 @@ void writeTxt(unsigned char page, unsigned char y, char *s) {
     }
 }
 
-
-unsigned char prev_buttons = 0;
 
 unsigned char read_buttons(void) {
     // Pull-down: not pressed = 0, pressed = 1
@@ -159,15 +158,13 @@ char *param_unit(Screen s, Param p) {
 void draw_start_screen(void) {
     clearGLCD(0, 7, 0, 127);
 
-    writeTxt(2, 6, "Samuel Mezquita");
+    writeTxt(4, 6, "Samuel Mezquita");
 
     __delay_ms(1000);
 }
 
 void draw_header(void) {
-    writeTxt(0, 0, "<");
     writeTxt(0, 2, screen_name(selected_screen));
-    writeTxt(0, 22, ">");
 }
 
 void draw_param_line(unsigned char page, Param p) {
