@@ -124,28 +124,6 @@ char *screen_name(Screen s) {
     }
 }
 
-char *param_name(Screen s, Param p) {
-    if (s == RENTAT) {
-        if (p == PARAM_0) return "Sabo";
-        if (p == PARAM_TIME) return "Temps";
-        if (p == PARAM_SPEED) return "Velocitat";
-    }
-
-    if (s == ESBANDIT) {
-        if (p == PARAM_0) return "Vegades";
-        if (p == PARAM_TIME) return "Temps";
-        if (p == PARAM_SPEED) return "Velocitat";
-    }
-
-    if (s == CENTRIFUGAT) {
-        if (p == PARAM_0) return "Suavitzant.";
-        if (p == PARAM_TIME) return "Temps";
-        if (p == PARAM_SPEED) return "Velocitat";
-    }
-
-    return "";
-}
-
 char *param_unit(Screen s, Param p) {
     if (p == PARAM_TIME) return "s";
     if (p == PARAM_SPEED) return "rpm";
@@ -159,12 +137,13 @@ char *param_unit(Screen s, Param p) {
 void draw_start_screen() {
     clearGLCD(0, 7, 0, 127);
 
-    writeTxt(4, 6, "Samuel Mezquita");
+    writeTxt(3, 5, "Samuel Mezquita");
 
     __delay_ms(1000);
+    clearGLCD(3, 3, 0, 120);
 }
 
-unsigned char get_page(Param p) {
+byte get_page(Param p) {
    if (p == PARAM_0) return 2;
    if (p == PARAM_TIME) return 4;
    return 6;
@@ -172,11 +151,8 @@ unsigned char get_page(Param p) {
 
 void draw_param_line(unsigned char page, Param p) {
 
-    if (p == selected_param) writeTxt(page, 0, ">");
+    if (p == selected_param) writeTxt(page, 60, ">");
     
-    writeTxt(page, 2, param_name(selected_screen, p));
-    writeTxt(page, 11, ":");
-
     writeNum(page, 13, settings[selected_screen].value[p]);
 
     writeTxt(page, 18, param_unit(selected_screen, p));
@@ -207,9 +183,9 @@ void my_clear(Screen s) {
 	 clearGLCD(6, 6, 66, 72);
 	 
 	 //clear units
-	 clearGLCD(2, 2, 216, 228);
-	 clearGLCD(4, 4, 216, 222);
-	 clearGLCD(6, 6, 216, 234);
+	 clearGLCD(2, 2, 108, 120);
+	 clearGLCD(4, 4, 108, 114);
+	 clearGLCD(6, 6, 108, 126);
      }
      if (selected_screen == ESBANDIT) {
 	 clearGLCD(0, 0, 12, 60);
@@ -224,9 +200,9 @@ void my_clear(Screen s) {
 	 clearGLCD(6, 6, 66, 72);
 	 
 	 //clear units
-	 clearGLCD(2, 2, 216, 228);
-	 clearGLCD(4, 4, 216, 222);
-	 clearGLCD(6, 6, 216, 234);
+	 clearGLCD(2, 2, 100, 126);
+	 clearGLCD(4, 4, 108, 114);
+	 clearGLCD(6, 6, 108, 126);
      }
      if (selected_screen == CENTRIFUGAT) {
 	 clearGLCD(0, 0, 12, 78);
@@ -241,9 +217,9 @@ void my_clear(Screen s) {
 	 clearGLCD(6, 6, 66, 72);
 	 
 	 //clear units
-	 clearGLCD(2, 2, 216, 228);
-	 clearGLCD(4, 4, 216, 222);
-	 clearGLCD(6, 6, 216, 234);
+	 clearGLCD(2, 2, 108, 120);
+	 clearGLCD(4, 4, 108, 114);
+	 clearGLCD(6, 6, 108, 126);
      }
 }
 
@@ -255,11 +231,11 @@ void draw_edit(Param p) {
 
 void draw_arrow(Param p, byte old_page) {
    byte page = get_page(p);
-   clearGLCD(old_page, old_page, 0, 9);
-   clearGLCD(page, page, 0, 9);
+   clearGLCD(old_page, old_page, 44, 54);
+   clearGLCD(page, page, 44, 54);
    
-   if (edit_mode) writeTxt(page, 0, ">>");
-   else writeTxt(page, 0, ">");
+   if (edit_mode) writeTxt(page, 60, ">>");
+   else writeTxt(page, 60, ">");
 }
 
 
@@ -291,7 +267,7 @@ void handle_buttons(unsigned char btn) {
          increase_value(selected_screen, selected_param);
 	 draw_edit(selected_param);
         }
-        else {
+        else if (selected_param != PARAM_0) {
             selected_param = (selected_param - 1 + NUM_PARAMS) % NUM_PARAMS;
 	    draw_arrow(selected_param, old_arrow_page);
         }
@@ -302,7 +278,7 @@ void handle_buttons(unsigned char btn) {
          decrease_value(selected_screen, selected_param);
 	 draw_edit(selected_param);
         }
-        else {
+        else if (selected_param != PARAM_SPEED) {
             selected_param = (selected_param + 1) % NUM_PARAMS;
 	    draw_arrow(selected_param, old_arrow_page);
         }
