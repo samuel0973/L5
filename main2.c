@@ -3,61 +3,12 @@
 
 #define _XTAL_FREQ 8000000
 
-typedef unsigned char byte;
-
-// ================= GLCD LIBRARY =================
-
-void sendGLCDCommand(byte val, byte CS);
-void setStartLine(byte z);
-void setXAddress(byte x);
-void setYAddress(byte y);
-void GLCDinit(void);
-void writeByte(byte p, byte y, byte data);
-void putchGLCD(byte p, byte y, char c);
-void clearGLCD(byte ri, byte re, byte ci, byte ce);
-byte readByte(byte p, byte y);
-void SetDot(byte x, byte y);
-void ClearDot(byte x, byte y);
-void writeNum(byte p, byte y, int value);
-
-void writeTxt(byte page, byte y, char *s) {
-    int i = 0;
-    while (*s != '\n' && *s != '\0') {
-        putchGLCD(page, y + i, *(s++));
-        i++;
-    }
-}
-
-// ================= BUTTONS =================
-
 #define BTN_UP      0x02   // RA0
 #define BTN_DOWN    0x08   // RA1
 #define BTN_LEFT    0x10   // RA2
 #define BTN_RIGHT   0x01   // RA3
 #define BTN_OK      0x04   // RA4
 #define BTN_MASK    0x1F
-
-byte prev_buttons = 0;
-
-byte read_buttons(void) {
-    // Pull-down: not pressed = 0, pressed = 1
-    return PORTA & BTN_MASK;
-}
-
-byte get_new_presses(void) {
-    byte b1 = read_buttons();
-    __delay_ms(20);
-    byte b2 = read_buttons();
-
-    byte curr = b1 & b2;
-    byte new_press = curr & ~prev_buttons;
-
-    prev_buttons = curr;
-
-    return new_press;
-}
-
-// ================= STATE =================
 
 typedef enum {
     RENTAT,
@@ -86,9 +37,39 @@ ScreenSettings settings[NUM_SCREENS] = {
     {{0, 0, 100}}    // CENTRIFUGAT: suavitzant, temps, velocitat
 };
 
-byte redraw_needed = 1;
+unsigned char redraw_needed = 1;
 
-// ================= LIMITS =================
+
+void writeTxt(unsigned char page, unsigned char y, char *s) {
+    int i = 0;
+    while (*s != '\n' && *s != '\0') {
+        putchGLCD(page, y + i, *(s++));
+        i++;
+    }
+}
+
+
+unsigned char prev_buttons = 0;
+
+unsigned char read_buttons(void) {
+    // Pull-down: not pressed = 0, pressed = 1
+    return PORTA & BTN_MASK;
+}
+
+unsigned char get_new_presses(void) {
+    unsigned char b1 = read_buttons();
+    __delay_ms(20);
+    unsigned char b2 = read_buttons();
+
+    unsigned char curr = b1 & b2;
+    unsigned char new_press = curr & ~prev_buttons;
+
+    prev_buttons = curr;
+
+    return new_press;
+}
+
+
 
 int get_min(Screen s, Param p) {
     if (p == PARAM_TIME) return 0;
@@ -133,7 +114,6 @@ void decrease_value(Screen s, Param p) {
     }
 }
 
-// ================= TEXT HELPERS =================
 
 char *screen_name(Screen s) {
     switch (s) {
@@ -175,7 +155,6 @@ char *param_unit(Screen s, Param p) {
     return "ml";
 }
 
-// ================= DRAW =================
 
 void draw_start_screen(void) {
     clearGLCD(0, 7, 0, 127);
@@ -191,8 +170,8 @@ void draw_header(void) {
     writeTxt(0, 22, ">");
 }
 
-void draw_param_line(byte page, Param p) {
-    byte col = 0;
+void draw_param_line(unsigned char page, Param p) {
+    unsigned char col = 0;
 
     if (p == selected_param)
         writeTxt(page, col, ">");
@@ -217,12 +196,10 @@ void draw_menu(void) {
     draw_param_line(4, PARAM_SPEED);
 
     writeTxt(6, 0, "OK: canvia param");
-    writeTxt(7, 0, "L/R: pantalla");
 }
 
-// ================= LOGIC =================
 
-void handle_buttons(byte btn) {
+void handle_buttons(unsigned char btn) {
     if (btn & BTN_RIGHT) {
         selected_screen = (selected_screen + 1) % NUM_SCREENS;
         selected_param = PARAM_0;
@@ -251,8 +228,6 @@ void handle_buttons(byte btn) {
     }
 }
 
-// ================= INIT =================
-
 void init_pic(void) {
     ANSELB = 0x00;
     ANSELA = 0x00;
@@ -265,7 +240,7 @@ void init_pic(void) {
 }
 
 void main(void) {
-    byte btn;
+    unsigned char btn;
 
     init_pic();
     GLCDinit();
