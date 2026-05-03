@@ -51,20 +51,20 @@ int get_step(Screen s, Param p) {
 
 void increase_value(Screen s, Param p) {
     settings[s].value[p] += get_step(s, p);
-    update_progress_bar(s, p);
-
+    
     if (settings[s].value[p] > get_max(s, p)) {
         settings[s].value[p] = get_max(s, p);
     }
+    update_progress_bar(s, p);
 }
 
 void decrease_value(Screen s, Param p) {
     settings[s].value[p] -= get_step(s, p);
-    update_progress_bar(s, p);
 
     if (settings[s].value[p] < get_min(s, p)) {
         settings[s].value[p] = get_min(s, p);
     }
+    update_progress_bar(s, p);
 }
 
 
@@ -205,29 +205,17 @@ void init_pic() {
     PORTD = 0x00;
 }
 
-void draw_progress_bar(byte p, byte y, byte percent)
-{
+void draw_progress_bar(byte p, byte y, byte percent) {
     const int length = 8;
     int totalPixels = length * 5;
     int filledPixels = (totalPixels * percent) / 100;
-    int i;
 
-    for (i = 0; i < totalPixels; ++i)
-    {
+    for (int i = 0; i < totalPixels; ++i) {
         byte pattern;
 
-        if (i == 0 || i == totalPixels - 1) 
-        {
-            pattern = 0x7F; 
-        }
-        else if (i < filledPixels)
-        {
-            pattern = 0x7F; 
-        }
-        else
-        {
-            pattern = 0x41; // empty area
-        }
+        if (i == 0 || i == totalPixels - 1) pattern = 0x7F; 
+        else if (i < filledPixels) pattern = 0x7F; 
+        else pattern = 0x41; // empty area
 
         writeByte(p, y + i, pattern);
     }
@@ -244,6 +232,3 @@ void update_progress_bar(Screen s, Param p) {
     if (p == PARAM_SPEED && settings[s].value[p] == 100) percentage = 0; 
     draw_progress_bar(page, 5, (byte)percentage);
 }
-
-
-
