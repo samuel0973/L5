@@ -1,4 +1,5 @@
 #include <xc.h>
+#include <string.h>
 #include "config.h"
 #include "GLCD.h"
 
@@ -27,24 +28,28 @@ typedef enum {
 
 typedef struct {
     int value[NUM_PARAMS];
+    const int max[NUM_PARAMS];
 } ScreenSettings;
 
 Screen selected_screen = RENTAT;
 Param selected_param = PARAM_0;
 
 ScreenSettings settings[NUM_SCREENS] = {
-    {{0, 0, 100}},   // RENTAT: sabo, temps, velocitat
-    {{1, 0, 100}},   // ESBANDIT: vegades, temps, velocitat
-    {{0, 0, 100}}    // CENTRIFUGAT: suavitzant, temps, velocitat
+    // RENTAT: sabo, temps, velocitat
+    {{0, 0, 100}, {100, 60, 1000}},
+
+    // ESBANDIT: vegades, temps, velocitat
+    {{1, 0, 100}, {5, 60, 1000}},
+
+    // CENTRIFUGAT: suavitzant, temps, velocitat
+    {{0, 0, 100}, {100, 60, 1000}}
 };
 
 unsigned char prev_buttons = 0;
 unsigned char edit_mode = 0;
 
-void writeTxt(unsigned char page, unsigned char y, char *s);
+void writeTxt(unsigned char page, unsigned char y, const char *s);
 
-//reads buttons from RA0-RA4
-unsigned char read_buttons() return PORTA & BTN_MASK;
 
 //button debouncing
 unsigned char debounce_buttons();
@@ -71,12 +76,14 @@ void draw_param_line(unsigned char page, Param p);
 
 void draw_screen(Screen s);
 
-void my_clear(Screen s) ;
+void my_clear(Screen s);
 
 void draw_edit(Param p);
 
 void draw_arrow(Param p, byte old_page);
 
-void handle_buttons(unsigned char btn);
+void draw_progress_bar(byte p, byte y, byte percent);
+
+void update_progress_bar(Screen s, Param p);
 
 void init_pic();
