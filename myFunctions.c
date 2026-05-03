@@ -1,6 +1,6 @@
 #include "myFunctions.h"
 
-void writeTxt(unsigned char page, unsigned char y, char *s) {
+void writeTxt(unsigned char page, unsigned char y, const char *s) {
     int i = 0;
     while (*s != '\n' && *s != '\0') {
         putchGLCD(page, y + i, *(s++));
@@ -8,10 +8,11 @@ void writeTxt(unsigned char page, unsigned char y, char *s) {
     }
 }
 
+
 unsigned char debounce_buttons() {
-    unsigned char b1 = read_buttons();
+    unsigned char b1 = PORTA & BTN_MASK;
     __delay_ms(20);
-    unsigned char b2 = read_buttons();
+    unsigned char b2 = PORTA & BTN_MASK;
 
     unsigned char curr = b1 & b2;
     unsigned char new_press = curr & ~prev_buttons;
@@ -50,6 +51,7 @@ int get_step(Screen s, Param p) {
 
 void increase_value(Screen s, Param p) {
     settings[s].value[p] += get_step(s, p);
+    update_progress_bar(s, p);
 
     if (settings[s].value[p] > get_max(s, p)) {
         settings[s].value[p] = get_max(s, p);
@@ -58,6 +60,7 @@ void increase_value(Screen s, Param p) {
 
 void decrease_value(Screen s, Param p) {
     settings[s].value[p] -= get_step(s, p);
+    update_progress_bar(s, p);
 
     if (settings[s].value[p] < get_min(s, p)) {
         settings[s].value[p] = get_min(s, p);
@@ -66,12 +69,10 @@ void decrease_value(Screen s, Param p) {
 
 
 char *screen_name(Screen s) {
-    switch (s) {
-        case RENTAT: return "RENTAT";
-        case ESBANDIT: return "ESBANDIT";
-        case CENTRIFUGAT: return "CENTRIFUGAT";
-        default: return "";
-    }
+   if (s == RENTAT) return "RENTAT";
+   if (s == ESBANDIT) return "ESBANDIT";
+   if (s == CENTRIFUGAT) return "CENTRIFUGAT";
+   return "";
 }
 
 char *param_unit(Screen s, Param p) {
@@ -100,17 +101,20 @@ byte get_page(Param p) {
 }
 
 void draw_param_line(unsigned char page, Param p) {
+    update_progress_bar(selected_screen, p);
 
-    if (p == selected_param) writeTxt(page, 60, ">");
-    
+    if (p == selected_param) {
+        if (edit_mode) writeTxt(page, 11, ">>");
+        else writeTxt(page, 11, ">");
+    }
+
     writeNum(page, 13, settings[selected_screen].value[p]);
-
     writeTxt(page, 18, param_unit(selected_screen, p));
 }
 
 void draw_screen(Screen s) {
-
-    writeTxt(0, 2, screen_name(selected_screen));
+    edit_mode = 0;
+    writeTxt(0, 1, screen_name(selected_screen));
 
     draw_param_line(2, PARAM_0);
     draw_param_line(4, PARAM_TIME);
@@ -122,16 +126,16 @@ void my_clear(Screen s) {
 	 //clear header
 	 clearGLCD(0, 0, 12, 48);
 	 
-	 //clear params
-	 clearGLCD(2, 2, 12, 36);
-	 clearGLCD(4, 4, 12, 42);
-	 clearGLCD(6, 6, 12, 66);
+	 //clear arrow 
+	 clearGLCD(2, 2, 40, 64);
+	 clearGLCD(4, 4, 40, 64);
+	 clearGLCD(6, 6, 40, 64);
 	 
-	 //clear :
-	 clearGLCD(2, 2, 66, 72);
-	 clearGLCD(4, 4, 66, 72);
-	 clearGLCD(6, 6, 66, 72);
-	 
+	 //clear values
+	 clearGLCD(2, 2, 60, 84);
+	 clearGLCD(4, 4, 60, 84);
+	 clearGLCD(6, 6, 60, 84);
+	  
 	 //clear units
 	 clearGLCD(2, 2, 108, 120);
 	 clearGLCD(4, 4, 108, 114);
@@ -140,32 +144,34 @@ void my_clear(Screen s) {
      if (selected_screen == ESBANDIT) {
 	 clearGLCD(0, 0, 12, 60);
 	 
-	 clearGLCD(2, 2, 12, 54);
-	 clearGLCD(4, 4, 12, 42);
-	 clearGLCD(6, 6, 12, 66);
+	  //clear arrow 
+	 clearGLCD(2, 2, 40, 64);
+	 clearGLCD(4, 4, 40, 64);
+	 clearGLCD(6, 6, 40, 64);
 	 
-	  //clear :
-	 clearGLCD(2, 2, 66, 72);
-	 clearGLCD(4, 4, 66, 72);
-	 clearGLCD(6, 6, 66, 72);
-	 
+	 //clear values
+	 clearGLCD(2, 2, 60, 84);
+	 clearGLCD(4, 4, 60, 84);
+	 clearGLCD(6, 6, 60, 84);
+	  
 	 //clear units
 	 clearGLCD(2, 2, 100, 126);
 	 clearGLCD(4, 4, 108, 114);
 	 clearGLCD(6, 6, 108, 126);
      }
      if (selected_screen == CENTRIFUGAT) {
-	 clearGLCD(0, 0, 12, 78);
+	 clearGLCD(0, 0, 12, 64);
 	 
-	 clearGLCD(2, 2, 12, 72);
-	 clearGLCD(4, 4, 12, 42);
-	 clearGLCD(6, 6, 12, 66);
+	  //clear arrow 
+	 clearGLCD(2, 2, 40, 64);
+	 clearGLCD(4, 4, 40, 64);
+	 clearGLCD(6, 6, 40, 64);
 	 
-	  //clear :
-	 clearGLCD(2, 2, 66, 72);
-	 clearGLCD(4, 4, 66, 72);
-	 clearGLCD(6, 6, 66, 72);
-	 
+	 //clear values
+	 clearGLCD(2, 2, 60, 84);
+	 clearGLCD(4, 4, 60, 84);
+	 clearGLCD(6, 6, 60, 84);
+	  
 	 //clear units
 	 clearGLCD(2, 2, 108, 120);
 	 clearGLCD(4, 4, 108, 114);
@@ -181,58 +187,11 @@ void draw_edit(Param p) {
 
 void draw_arrow(Param p, byte old_page) {
    byte page = get_page(p);
-   clearGLCD(old_page, old_page, 44, 54);
-   clearGLCD(page, page, 44, 54);
+   clearGLCD(old_page, old_page, 50, 64);
+   clearGLCD(page, page, 50, 64);
    
-   if (edit_mode) writeTxt(page, 60, ">>");
-   else writeTxt(page, 60, ">");
-}
-
-
-void handle_buttons(unsigned char btn) {
-   byte old_arrow_page = get_page(selected_param);
-    
-   if (btn & BTN_RIGHT) {
-	   my_clear(selected_screen);
-      selected_screen = (selected_screen + 1) % NUM_SCREENS;
-      selected_param = PARAM_0;
-	   draw_screen(selected_screen);
-   }
-
-   if (btn & BTN_LEFT) {
-	   my_clear(selected_screen);
-      selected_screen = (selected_screen - 1 + NUM_SCREENS) % NUM_SCREENS;
-      selected_param = PARAM_0;
-	   draw_screen(selected_screen);
-   }
-
-   if (btn & BTN_OK) {
-      if (edit_mode == 0) edit_mode = 1;
-        else edit_mode = 0;
-	    draw_arrow(selected_param, old_arrow_page);
-   }
-
-   if (btn & BTN_UP) {
-      if (edit_mode) {
-         increase_value(selected_screen, selected_param);
-	      draw_edit(selected_param);
-      }
-        else if (selected_param != PARAM_0) {
-            selected_param = (selected_param - 1 + NUM_PARAMS) % NUM_PARAMS;
-	        draw_arrow(selected_param, old_arrow_page);
-        }
-   }
-
-   if (btn & BTN_DOWN) {
-      if (edit_mode) {
-         decrease_value(selected_screen, selected_param);
-	      draw_edit(selected_param);
-      }
-      else if (selected_param != PARAM_SPEED) {
-         selected_param = (selected_param + 1) % NUM_PARAMS;
-	      draw_arrow(selected_param, old_arrow_page);
-      }
-   }
+   if (edit_mode) writeTxt(page, 11, ">>");
+   else writeTxt(page, 11, ">");
 }
 
 void init_pic() {
@@ -245,3 +204,46 @@ void init_pic() {
     PORTB = 0x00;
     PORTD = 0x00;
 }
+
+void draw_progress_bar(byte p, byte y, byte percent)
+{
+    const int length = 8;
+    int totalPixels = length * 5;
+    int filledPixels = (totalPixels * percent) / 100;
+    int i;
+
+    for (i = 0; i < totalPixels; ++i)
+    {
+        byte pattern;
+
+        if (i == 0 || i == totalPixels - 1) 
+        {
+            pattern = 0x7F; 
+        }
+        else if (i < filledPixels)
+        {
+            pattern = 0x7F; 
+        }
+        else
+        {
+            pattern = 0x41; // empty area
+        }
+
+        writeByte(p, y + i, pattern);
+    }
+}
+
+void update_progress_bar(Screen s, Param p) {
+    long val = (long)settings[s].value[p];
+    long min = (long)get_min(s, p);
+    long max = (long)get_max(s, p);
+    long percentage = ((val - min) * 100L) / (max - min);
+    
+    byte page = get_page(p);
+    if (s == ESBANDIT && p == PARAM_0 && settings[s].value[p] == 1) percentage = 0;
+    if (p == PARAM_SPEED && settings[s].value[p] == 100) percentage = 0; 
+    draw_progress_bar(page, 5, (byte)percentage);
+}
+
+
+
